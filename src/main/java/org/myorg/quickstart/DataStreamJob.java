@@ -6,10 +6,10 @@ import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsIni
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.util.Collector;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -61,40 +61,53 @@ public class DataStreamJob {
 
         // Keyed process function to handle the lookup and update
         DataStream<KafkaMessage> processedStream = kafkaDataStream
-                .keyBy(message -> message.getBody().getAccountName())
+                .keyBy(message -> message.getEmployee().getEmployeeName())
                 .process(new KeyedProcessFunction<String, KafkaMessage, KafkaMessage>() {
                     @Override
                     public void processElement(KafkaMessage kafkaMessage, KeyedProcessFunction<String, KafkaMessage, KafkaMessage>.Context context, Collector<KafkaMessage> collector) throws Exception {
-                        String accountName = kafkaMessage.getBody().getAccountName();
+                        String employeeName = kafkaMessage.getEmployee().getEmployeeName();
 
                         // TODO: Implement lookup logic here
                         String lookupResult = "SomeLookupResult";
 
-                        kafkaMessage.getBody().setAccountId(lookupResult);
+                        kafkaMessage.getEmployee().setEmployeeId(lookupResult);
 
                         // Emit the modified KafkaMessage
                         collector.collect(kafkaMessage);
+
+                        System.out.println("\n" + employeeName);
+
                     }
                 });
+        System.out.println("\n" + processedStream.print());
 
-        // Call API
-        System.out.println("\n----------------------------------------------" );
-        System.out.println("Call API");
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:3000/")).GET().build();
+        // Call API when Flink got new message
+        processedStream.addSink(
+                new SinkFunction<KafkaMessage>() {
+                    @Override
+                    public void invoke(KafkaMessage value) throws Exception {
+                        // Call API
+                        System.out.println("\n----------------------------------------------");
+                        System.out.println("Call API");
 
-        try {
-            HttpResponse<String> response = httpClient.send(request,HttpResponse.BodyHandlers.ofString());
+                        HttpClient httpClient = HttpClient.newHttpClient();
+                        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:3000/")).GET().build();
 
-            int statusCode = response.statusCode();
-            System.out.println("HTTP status: " + statusCode);
-            System.out.println("Response: " + response.body());
-            System.out.println("----------------------------------------------" + "\n");
+                        try {
+                            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+                            int statusCode = response.statusCode();
+                            System.out.println("HTTP status: " + statusCode);
+                            System.out.println("Response: " + response.body());
+                            System.out.println("----------------------------------------------" + "\n");
+
+                        } catch (IOException | InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+        );
 
 
         // Add the JDBC sink to the Flink job
