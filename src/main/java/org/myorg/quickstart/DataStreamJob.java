@@ -30,6 +30,8 @@ import java.net.http.HttpResponse;
 public class DataStreamJob {
 
     public static void main(String[] args) throws Exception {
+        System.out.println("Welcome to FLINK :) ");
+
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         KafkaSource<KafkaMessage> kafkaSource = KafkaSource.<KafkaMessage>builder()
@@ -79,7 +81,6 @@ public class DataStreamJob {
 
                     }
                 });
-        System.out.println("\n" + processedStream.print());
 
 
         // Call API when Flink got new message

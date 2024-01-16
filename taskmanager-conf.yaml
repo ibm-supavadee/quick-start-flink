@@ -1,0 +1,8 @@
+# ./taskmanager-conf.yaml
+taskmanager:
+  memory:
+    task.heap.size: 512m # Adjust the size as needed
+    task.off-heap.size: 256m # Adjust the size as needed
+jobmanager.rpc.address: flink-jobmanager
+blob.server.port: 6124
+query.server.port: 6125

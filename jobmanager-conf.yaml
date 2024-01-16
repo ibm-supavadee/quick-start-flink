@@ -1,0 +1,8 @@
+# ./jobmanager-conf.yaml
+jobmanager:
+  memory:
+    heap.size: 1024m # Adjust the size as needed
+    flink.size: 2048m # Adjust the size as needed
+jobmanager.rpc.address: 565a795bc2b0
+blob.server.port: 6124
+query.server.port: 6125

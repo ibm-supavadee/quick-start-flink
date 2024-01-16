@@ -1,0 +1,31 @@
+# Flink Configuration
+
+# JobManager's address
+jobmanager:
+  rpc.address: flink-jobmanager
+#  memory:
+#    heap.size: 1024m # Adjust the size as needed
+#    flink.size: 2048m # Adjust the size as needed
+#    process.size: 3072m
+
+#taskmanager:
+#  memory:
+#    task.heap.size: 512m # Adjust the size as needed
+#    task.off-heap.size: 256m # Adjust the size as needed
+
+# Kafka Configuration
+execution:
+  checkpointing: true  # Enable Flink checkpointing
+
+# Kafka Consumer Configuration
+execution.checkpointing: true
+
+consumer.properties.bootstrap.servers: "redpanda:9092"
+consumer.properties.group.id: "flink-consumer-group"
+consumer.properties.auto.offset.reset: "earliest"
+
+producer.properties.bootstrap.servers: "redpanda:9092"
+
+jobmanager.rpc.address: flink-jobmanager
+blob.server.port: 6124
+query.server.port: 6125
